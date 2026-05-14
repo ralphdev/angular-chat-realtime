@@ -19,6 +19,7 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
+/supabase
 
 # Visual Studio Code
 .vscode
@@ -38,3 +39,7 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 .env
+
+package-lock.json
+/src/environments/environment.prod.ts
+/src/environments/environment.ts
