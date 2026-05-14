@@ -71,5 +71,5 @@ touch supabase/schema.sql
 touch src/app/shared/models/database.types.ts
 # O generar automáticamente (requiere supabase start):
 
-# bun run supabase:types
+# npm run supabase:types
 ```

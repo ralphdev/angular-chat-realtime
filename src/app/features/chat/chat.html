@@ -1,0 +1,165 @@
+<div class="flex h-screen bg-chat-bg text-slate-100 overflow-hidden">
+      <!-- ─── Sidebar ─────────────────────── -->
+      <aside class="hidden md:flex flex-col w-64 bg-chat-panel border-r border-chat-border">
+        <div class="p-5 border-b border-chat-border">
+          <h1 class="text-lg font-semibold text-gradient">LiveChat</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Mensajería en tiempo real</p>
+        </div>
+
+        @if (auth.profile(); as profile) {
+          <div class="flex items-center gap-3 px-4 py-3 border-b border-chat-border">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center text-sm font-bold shrink-0">
+              {{ profile.username[0].toUpperCase() }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium truncate">{{ profile.username }}</p>
+              <p class="text-xs text-green-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-dot inline-block"></span>
+                Tú
+              </p>
+            </div>
+          </div>
+        }
+
+        <div class="flex-1 overflow-y-auto">
+          <div class="px-4 pt-4 pb-2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              En línea — {{ store.onlineCount() }}
+            </p>
+          </div>
+          @for (user of store.onlineUsers(); track user.user_id) {
+            <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors">
+              <div class="relative shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold">
+                  {{ user.username[0].toUpperCase() }}
+                </div>
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-chat-panel"></span>
+              </div>
+              <p class="text-sm truncate text-slate-300">{{ user.username }}</p>
+            </div>
+          }
+          @if (store.onlineCount() === 0) {
+            <p class="px-4 py-3 text-sm text-slate-600 italic">Nadie en línea aún</p>
+          }
+        </div>
+
+        <div class="p-4 border-t border-chat-border">
+          <button (click)="signOut()"
+            class="w-full text-sm text-slate-500 hover:text-red-400 transition-colors py-1.5 rounded-lg hover:bg-red-500/5 flex items-center gap-2 justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+            </svg>
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      <!-- ─── Chat area ─────────────────────── -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <header class="flex items-center justify-between px-4 py-3 glass border-b border-chat-border shrink-0">
+          <div>
+            <h2 class="text-sm font-semibold">Chat Global</h2>
+            <p class="text-xs text-slate-500">{{ store.onlineCount() }} usuarios en línea</p>
+          </div>
+          <button (click)="signOut()" class="md:hidden p-2 text-slate-500 hover:text-red-400 transition-colors rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+            </svg>
+          </button>
+        </header>
+
+        <!-- Feed -->
+        <div #messagesContainer class="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+          @if (store.loading()) {
+            <div class="flex items-center justify-center h-full">
+              <div class="flex gap-2">
+                <span class="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style="animation-delay:0ms"></span>
+                <span class="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style="animation-delay:150ms"></span>
+                <span class="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style="animation-delay:300ms"></span>
+              </div>
+            </div>
+          } @else {
+            @for (msg of store.messages(); track msg.id) {
+              <div class="flex animate-fade-in" [class.justify-end]="isOwnMessage(msg)">
+                @if (!isOwnMessage(msg)) {
+                  <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold shrink-0 mr-2 mt-1">
+                    {{ senderInitial(msg) }}
+                  </div>
+                }
+                <div class="flex flex-col" [class.items-end]="isOwnMessage(msg)">
+                  @if (!isOwnMessage(msg)) {
+                    <span class="text-xs text-slate-500 mb-0.5 ml-1">{{ msg.profile?.username ?? 'Usuario' }}</span>
+                  }
+                  <div [class]="isOwnMessage(msg) ? 'message-bubble-own' : 'message-bubble-other'">
+                    @if (msg.image_url) {
+                      <img [src]="msg.image_url" alt="Imagen"
+                        class="rounded-xl max-w-full mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                        style="max-height:240px;object-fit:cover"
+                        (click)="lightboxUrl.set(msg.image_url)" />
+                    }
+                    @if (msg.content) {
+                      <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ msg.content }}</p>
+                    }
+                    <p class="text-xs mt-1 opacity-50 text-right">{{ msg.created_at | date:'HH:mm' }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (store.messages().length === 0) {
+              <div class="flex flex-col items-center justify-center h-full gap-3 text-slate-600">
+                <svg class="w-12 h-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                    d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>
+                </svg>
+                <p class="text-sm">Sin mensajes aún. ¡Sé el primero!</p>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Error -->
+        @if (store.error()) {
+          <div class="mx-4 mb-2 px-3 py-2 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm flex items-center justify-between animate-fade-in">
+            <span>{{ store.error() }}</span>
+            <button (click)="store.clearError()" class="ml-2 text-red-400 hover:text-red-200">✕</button>
+          </div>
+        }
+
+        <!-- Composer -->
+        <div class="glass border-t border-chat-border px-4 py-3 shrink-0">
+          <div class="flex items-end gap-2">
+            <app-upload (fileSelected)="selectedFile.set($event)" />
+            <div class="flex-1">
+              <textarea [(ngModel)]="messageText" (keydown.enter)="onEnterKey($event)"
+                placeholder="Escribe un mensaje..." rows="1"
+                class="w-full bg-chat-card border border-chat-border rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 resize-none focus:outline-none focus:border-blue-600 transition-colors leading-relaxed"
+                style="max-height:120px" [disabled]="store.sending()"></textarea>
+            </div>
+            <button (click)="sendMessage()" [disabled]="!canSend()"
+              class="shrink-0 w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all active:scale-95">
+              @if (store.sending()) {
+                <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+              } @else {
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                </svg>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lightbox -->
+    @if (lightboxUrl()) {
+      <div class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fade-in"
+        (click)="lightboxUrl.set(null)">
+        <img [src]="lightboxUrl()!" alt="Imagen ampliada" class="max-w-full max-h-full rounded-xl object-contain" />
+      </div>
+    }
