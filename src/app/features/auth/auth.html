@@ -1,0 +1,128 @@
+<div class="min-h-screen bg-chat-bg flex items-center justify-center p-4">
+  <!-- Background decoration -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-green-600/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Card -->
+  <div class="relative w-full max-w-md">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div
+        class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-blue-600 shadow-lg mb-4"
+      >
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+          />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-semibold text-gradient">LiveChat</h1>
+      <p class="text-sm text-slate-500 mt-1">Mensajería en tiempo real</p>
+    </div>
+
+    <!-- Form card -->
+    <div class="bg-chat-panel rounded-2xl border border-chat-border shadow-2xl overflow-hidden">
+      <!-- Tabs -->
+      <div class="flex border-b border-chat-border">
+        <button
+          (click)="tab.set('login')"
+          [class]="
+            tab() === 'login'
+              ? 'flex-1 py-3.5 text-sm font-medium text-white border-b-2 border-blue-500 bg-white/5'
+              : 'flex-1 py-3.5 text-sm font-medium text-slate-500 hover:text-slate-300 transition-colors'
+          "
+        >
+          Iniciar sesión
+        </button>
+        <button
+          (click)="tab.set('register')"
+          [class]="
+            tab() === 'register'
+              ? 'flex-1 py-3.5 text-sm font-medium text-white border-b-2 border-blue-500 bg-white/5'
+              : 'flex-1 py-3.5 text-sm font-medium text-slate-500 hover:text-slate-300 transition-colors'
+          "
+        >
+          Registrarse
+        </button>
+      </div>
+
+      <!-- Form body -->
+      <div class="p-6 space-y-4">
+        <!-- Error -->
+        @if (auth.error()) {
+          <div
+            class="px-3 py-2.5 bg-red-900/40 border border-red-700/50 rounded-xl text-red-300 text-sm animate-fade-in"
+          >
+            {{ auth.error() }}
+          </div>
+        }
+
+        <!-- Username (register only) -->
+        @if (tab() === 'register') {
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Usuario</label>
+            <input
+              [(ngModel)]="username"
+              type="text"
+              placeholder="tu_usuario"
+              autocomplete="username"
+              class="w-full bg-chat-card border border-chat-border rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-600 transition-colors"
+            />
+          </div>
+        }
+
+        <!-- Email -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
+          <input
+            [(ngModel)]="email"
+            type="email"
+            placeholder="tu@email.com"
+            autocomplete="email"
+            class="w-full bg-chat-card border border-chat-border rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-600 transition-colors"
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Contraseña</label>
+          <input
+            [(ngModel)]="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            (keydown.enter)="submit()"
+            class="w-full bg-chat-card border border-chat-border rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-600 transition-colors"
+          />
+        </div>
+
+        <!-- Submit -->
+        <button
+          (click)="submit()"
+          [disabled]="auth.loading() || !isFormValid()"
+          class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+        >
+          @if (auth.loading()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+          }
+          {{ tab() === 'login' ? 'Entrar' : 'Crear cuenta' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
